@@ -40,9 +40,13 @@ def display_data(data: np.ndarray, channel_name: str, sampling_time: float,
     if state == "filtered":
         ax[0].set_title(f"EEG - Channel {channel_name} - Post Processing - Time Domain")
         ax[1].set_title(f"EEG - Channel {channel_name} - Post Processing - Frequency Domain")
+    elif state == "uncurrent":
+        ax[0].set_title(f"EEG - Channel {channel_name} - Current Artifact Removed - Time Domain")
+        ax[1].set_title(f"EEG - Channel {channel_name} - Current Artifact Removed - Frequency Domain")
     elif state == "default":
         ax[0].set_title(f"EEG - Channel {channel_name} - Time Domain")
         ax[1].set_title(f"EEG - Channel {channel_name} - Frequency Domain")
+
 
     # --- TIME GRAPH FORMATTING ---
     ax[0].set_xlabel("Time (s)")
@@ -99,4 +103,96 @@ def display_filter(filter_coeffs: np.ndarray, filter_selected: str, sampling_fre
     ax[1].axis('tight')
 
     fig.tight_layout()
+    return fig
+
+
+
+def compare_filter(Fir_win: np.ndarray, Fir_eqr: np.ndarray, Fir_lsq: np.ndarray, filter_selected: str, sampling_frequency :float) -> Figure:
+
+    """
+    Allows to compare the three methods proposed (Window, Equiripple, Least Squares) to help the user decide the filter features needed.
+    To achieve a reasonable comparison, all filters will be designed using the same parameters through the streamlit interface by the user /
+    in the Jupyter Notebook by the author.
+
+    Args:
+        Fir_win, Fir_eqr, Fir_lsq (np.ndarray): The calculated FIR filters coefficients (taps).
+        filter_selected (str): The name/type of the filter for the title (e.g., 'Highpass').
+        sampling_frequency (float): Sampling rate in Hz.
+
+    Returns:
+        Figure: A Matplotlib Figure object containing the Bode plot of the three filters.
+
+    """
+
+    fig, ax = plt.subplots(2, 3, figsize=(16,8), dpi=400)
+
+    f_axis, h_window = signal_processing.Frequency_response(Fir_win, sampling_frequency)
+    h_equiripple = signal_processing.Frequency_response(Fir_eqr, sampling_frequency)[1]
+    h_leastsquares = signal_processing.Frequency_response(Fir_lsq, sampling_frequency)[1]
+
+    # --- PLOT [0,0]: MAGNITUDE WINDOW---
+    ax[0,0].set_title(f"{filter_selected} Window FIR Filter (Magnitude)")
+    # np.maximum prevents 'Divide by Zero' RuntimeWarnings if the filter has perfect zero attenuation
+    magnitude_db_win = 20 * np.log10(np.maximum(np.abs(h_window), 1e-10))
+    ax[0,0].plot(f_axis, magnitude_db_win, 'C0')
+        
+    ax[0,0].set_ylabel("Amplitude in dB", color='C0')
+    ax[0,0].set(xlabel="Frequency in Hz")
+    ax[0,0].grid(True)
+    ax[0,0].axis('tight')
+    
+    # --- PLOT [1,0]: PHASE WINDOW---
+    phase_win = np.unwrap(np.angle(h_window))
+    ax[1,0].set_title(f"{filter_selected} Window FIR Filter (Phase)")
+    ax[1,0].plot(f_axis, phase_win, 'C1')
+        
+    ax[1,0].set_ylabel('Phase [rad]', color='C1')
+    ax[1,0].set(xlabel="Frequency in Hz")
+    ax[1,0].grid(True)
+    ax[1,0].axis('tight')
+
+    # --- PLOT [0,1]: MAGNITUDE EQUIRIPPLE---
+    ax[0,1].set_title(f"{filter_selected} Equiripple FIR Filter (Magnitude)")
+    # np.maximum prevents 'Divide by Zero' RuntimeWarnings if the filter has perfect zero attenuation
+    magnitude_db_eqr = 20 * np.log10(np.maximum(np.abs(h_equiripple), 1e-10))
+    ax[0,1].plot(f_axis, magnitude_db_eqr, 'C0')
+        
+    ax[0,1].set_ylabel("Amplitude in dB", color='C0')
+    ax[0,1].set(xlabel="Frequency in Hz")
+    ax[0,1].grid(True)
+    ax[0,1].axis('tight')
+    
+    # --- PLOT [1,1]: PHASE EQUIRIPPLE---
+    phase_eqr = np.unwrap(np.angle(h_equiripple))
+    ax[1,1].set_title(f"{filter_selected} Equiripple FIR Filter (Phase)")
+    ax[1,1].plot(f_axis, phase_eqr, 'C1')
+        
+    ax[1,1].set_ylabel('Phase [rad]', color='C1')
+    ax[1,1].set(xlabel="Frequency in Hz")
+    ax[1,1].grid(True)
+    ax[1,1].axis('tight')
+
+    # --- PLOT [0,2]: MAGNITUDE L SQUARES---
+    ax[0,2].set_title(f"{filter_selected} Least Squares FIR Filter (Magnitude)")
+    # np.maximum prevents 'Divide by Zero' RuntimeWarnings if the filter has perfect zero attenuation
+    magnitude_db_lsq = 20 * np.log10(np.maximum(np.abs(h_leastsquares), 1e-10))
+    ax[0,2].plot(f_axis, magnitude_db_lsq, 'C0')
+        
+    ax[0,2].set_ylabel("Amplitude in dB", color='C0')
+    ax[0,2].set(xlabel="Frequency in Hz")
+    ax[0,2].grid(True)
+    ax[0,2].axis('tight')
+    
+    # --- PLOT [1,2]: PHASE L SQUARES---
+    phase_lsq = np.unwrap(np.angle(h_leastsquares))
+    ax[1,2].set_title(f"{filter_selected} Least Squares FIR Filter (Phase)")
+    ax[1,2].plot(f_axis, phase_lsq, 'C1')
+        
+    ax[1,2].set_ylabel('Phase [rad]', color='C1')
+    ax[1,2].set(xlabel="Frequency in Hz")
+    ax[1,2].grid(True)
+    ax[1,2].axis('tight')
+
+    fig.tight_layout()
+    
     return fig

@@ -1,4 +1,4 @@
-# EEG Toolbox (v1.0-beta)
+# EEG Toolbox (v1.1-beta)
 
 
 
@@ -23,7 +23,8 @@ This beta version introduces heavy architectural upgrades to the core signal pro
 * **Optimized Powerline Artifact Removal**: The 50/60 Hz Notch filter has been migrated to an Infinite Impulse Response (IIR) architecture. This guarantees high computational efficiency and surgical attenuation of AC interference without distorting adjacent frequency bands.
 * **Advanced FIR Filter Design**: Comprehensive support for FIR filter synthesis using the **Window Method** (Hanning, Hamming, Blackman, Kaiser), the **Equiripple** (Parks-McClellan) algorithm, and **Least Squares** optimization.
 * **Dynamic Safety Clamps \& Order Routing**: Cutoff frequencies, transition widths, and filter orders are dynamically constrained in real-time based on the signal's Nyquist frequency. This forces absolute mathematical stability and prevents algorithmic non-convergence (e.g., within the Remez exchange algorithm).
-
+* **Filter Comparison**: The filter option is presented with a Bode Plot of the FIR design options (Window, Equiripple, Least Squares). The user can tune the **order** and the **transition width** of every filter to finally select the best option for the signal processing.
+* **Jupyter Notebook**: Added a Jupyter Notebook demo of the program, giving a complete, automatic overview of the functions proposed. The experiment shown focuses on isolating the Theta band (3-7 Hz) from an EEG sample, showing the filtering options and choosing the best result.
 
 
 
