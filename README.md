@@ -1,4 +1,4 @@
-# EEG Toolbox (v1.1-beta)
+# EEG Toolbox (v1.1.1-beta)
 
 
 
