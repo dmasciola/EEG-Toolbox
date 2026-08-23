@@ -6,6 +6,8 @@ import pyedflib
 from scipy import fft, signal
 import matplotlib.pyplot
 import numpy
+import fpdf
+import sklearn
 
 if __name__ == "__main__":
     # temporary file extraction in MEIPASS

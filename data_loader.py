@@ -2,6 +2,13 @@ import pyedflib
 import numpy as np
 from typing import Tuple, List
 
+"""
+This module provides functions to load and extract data from EEG files in EDF (European Data Format).
+The module is currently designed to handle files with uniform sampling rates across all channels. 
+It extracts the signal data, channel information, sampling frequency, 
+and other relevant metadata for further processing and analysis.
+"""
+
 def load_edf_data(file_path: str, verbose: bool = False) -> Tuple[np.ndarray, int, List[str], float, int, str]:
     """
     Loads and extracts data from an EEG file in EDF (European Data Format).
@@ -41,9 +48,15 @@ def load_edf_data(file_path: str, verbose: bool = False) -> Tuple[np.ndarray, in
         channel_names = f.getSignalLabels()
         
         # Assume uniform sampling and dimensions by referencing the first channel (index 0)
+
+        n_samples_array = f.getNSamples()
+
+        if not np.all(n_samples_array == n_samples_array[0]):
+            raise ValueError("The EDF file contains channels with heterogeneous sampling rates. The toolbox currently requires uniform sampling across all channels.")
+        n_samples = int(n_samples_array[0])
         sample_frequency = f.getSampleFrequency(0)
         sampling_time = f.getFileDuration()
-        n_samples = int(f.getNSamples()[0])
+
         data_dimension = f.getPhysicalDimension(0)
 
         log(f"Extracting {n_channels} channels...")
