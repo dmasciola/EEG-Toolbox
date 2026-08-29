@@ -1,7 +1,7 @@
 import streamlit as st
 import tempfile
 import os
-from data_loader import load_edf_data
+import data_loader as ld
 import data_displayer as disp
 import signal_processing
 import montages
@@ -49,7 +49,7 @@ def main():
         if not st.session_state.data_loaded:
             with st.spinner("Loading File..."):
                 try:
-                    data_matrix, n_channels, channel_names, freq, time, dimension_unit = load_edf_data(temp_path)
+                    data_matrix, n_channels, channel_names, freq, time, dimension_unit = ld.load_edf_data(temp_path)
             
                     st.session_state.data_matrix = data_matrix
                     st.session_state.n_channels = n_channels
@@ -416,6 +416,39 @@ def main():
             mime="application/pdf",
             type="primary"
         )
+
+        # --- DOWNLOAD PROCESSED DATA ---
+
+        st.subheader("Export Data")
+
+        # Create a temporary file to bypass pyEDFlib's C-level file path requirement
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".edf") as tmp_file:
+            # Write the processed data to the temporary file
+            ld.export_to_EDF(
+                tmp_file.name, 
+                st.session_state.data_processing, 
+                st.session_state.channel_names, 
+                st.session_state.freq, 
+                st.session_state.dimension_unit
+            )
+            
+            # Read the binary data back into memory
+            with open(tmp_file.name, "rb") as f:
+                edf_bytes = f.read()
+                
+        # Create the Streamlit download button
+        st.download_button(
+            label="Download Processed EEG (.edf)",
+            data=edf_bytes,
+            file_name="processed_signal.edf",
+            mime="application/octet-stream",
+            type="primary"
+        )
+
+        # Clean up the temporary file from the server
+        os.remove(tmp_file.name)
+
+
     finally:
         # Ensures the temporary file is deleted from system memory after execution completes
         if os.path.exists(temp_path):
